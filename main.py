@@ -1,8 +1,33 @@
 import socket
 import datetime
 import struct
+import ipaddress
+from functools import lru_cache
+
+USE_RDNS = True
 
 PROTO_NAME = {1: "ICMP", 6: "TCP", 17: "UDP"}
+
+PRIVATE_NETS = [
+    ipaddress.ip_network("10.0.0.0/8"),
+    ipaddress.ip_network("172.16.0.0/12"),
+    ipaddress.ip_network("192.168.0.0/16"),
+]
+MULTICAST_NET = ipaddress.ip_network("224.0.0.0/4")  # includes 239.255.255.250
+
+def is_private(ip: str) -> bool:
+    ipobj = ipaddress.ip_address(ip)
+    return any(ipobj in net for net in PRIVATE_NETS)
+
+def is_multicast(ip: str) -> bool:
+    return ipaddress.ip_address(ip) in MULTICAST_NET
+
+@lru_cache(maxsize=1024)
+def rdns(ip: str) -> str:
+    try:
+        return socket.gethostbyaddr(ip)[0]
+    except Exception:
+        return ip  # fallback to IP if no PTR
 
 def parse_ipv4_header(data: bytes):
     if len(data) < 20:
@@ -49,6 +74,15 @@ def open_raw_ipv4_socket():
     s.ioctl(socket.SIO_RCVALL, socket.RCVALL_ON)
     return s
 
+def tcp_flags_str(payload: bytes) -> str:
+    if len(payload) < 20:
+        return ""
+    # data offset (upper 4 bits of byte 12) tells header size if you want later
+    flags = payload[13]
+    # bit order (from MSB to LSB): CWR ECE URG ACK PSH RST SYN FIN
+    names = ["CWR","ECE","URG","ACK","PSH","RST","SYN","FIN"]
+    return ",".join(n for bit, n in enumerate(names[::-1]) if flags & (1 << bit))
+
 def main():
     s = open_raw_ipv4_socket()
     print("[*] Sniffer running. Ctrl+C to stop.")
@@ -58,18 +92,40 @@ def main():
             ts = datetime.datetime.now().strftime("%H:%M:%S.%f")[:-3]
 
             hdr = parse_ipv4_header(pkt)
-            if hdr:
-                ihl_bytes, total_len, proto, src_ip, dst_ip = hdr
-                payload = pkt[ihl_bytes:]
-                sport, dport = parse_ports(proto, payload)
-                pname = PROTO_NAME.get(proto, str(proto))
-                if sport is not None:
-                    print(f"[{ts}] {src_ip}:{sport} -> {dst_ip}:{dport}  proto={pname} len={total_len}")
-                else:
-                    print(f"[{ts}] {src_ip} -> {dst_ip}  proto={pname} len={total_len}")
-            else:
-                # fallback if something odd slips through
+            if not hdr:
                 print(f"[{ts}] len={len(pkt)} bytes  dump={hexdump(pkt)}")
+                continue
+
+            ihl_bytes, total_len, proto, src_ip, dst_ip = hdr
+            # 1) filter (skip LAN to LAN and multicast)
+            if (is_private(src_ip) and is_private(dst_ip)) or is_multicast(src_ip) or is_multicast(dst_ip):
+                continue
+
+            # 2) parse ports
+            payload = pkt[ihl_bytes:]
+            sport, dport = parse_ports(proto, payload)
+            pname = PROTO_NAME.get(proto, str(proto))
+
+            # 3) optional rDNS (after filter)
+            if USE_RDNS:
+                show_src = rdns(src_ip)
+                show_dst = rdns(dst_ip)
+                who_src = show_src if show_src != src_ip else src_ip
+                who_dst = show_dst if show_dst != dst_ip else dst_ip
+            else:
+                who_src, who_dst = src_ip, dst_ip
+
+            # 4) print
+            if sport is not None:
+                if proto == 6:  # TCP
+                    flags = tcp_flags_str(payload)
+                    extra = f" flags={flags}" if flags else ""
+                    print(f"[{ts}] {who_src}:{sport} -> {who_dst}:{dport}  proto=TCP len={total_len}{extra}")
+                else:
+                    print(f"[{ts}] {who_src}:{sport} -> {who_dst}:{dport}  proto={pname} len={total_len}")
+            else:
+                print(f"[{ts}] {who_src} -> {who_dst}  proto={pname} len={total_len}")
+
     except KeyboardInterrupt:
         print("\n[!] Stopping...")
     finally:
