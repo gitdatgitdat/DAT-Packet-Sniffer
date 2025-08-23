@@ -1,7 +1,10 @@
 import socket
+import time
 import datetime
 import struct
 import ipaddress
+import argparse
+from collections import Counter
 from functools import lru_cache
 
 USE_RDNS = True
@@ -83,9 +86,89 @@ def tcp_flags_str(payload: bytes) -> str:
     names = ["CWR","ECE","URG","ACK","PSH","RST","SYN","FIN"]
     return ",".join(n for bit, n in enumerate(names[::-1]) if flags & (1 << bit))
 
+def human_bytes(n: int) -> str:
+    """e.g., 4443318 -> '4.24 MB'"""
+    units = ["B","KB","MB","GB","TB"]
+    f = float(n)
+    for u in units:
+        if f < 1024 or u == units[-1]:
+            return f"{f:.2f} {u}"
+        f /= 1024
+
+def _truncate(s: str, width: int) -> str:
+    return s if len(s) <= width else s[: max(0, width-1)] + "…"
+
+def counter_table(counter, title: str, key_label: str, top_n=10,
+                  key_width=36, val_width=8) -> str:
+    if not counter:
+        return f"{title}:\n  (none)\n"
+    rows = []
+    header = f"{title}:\n  {key_label.ljust(key_width)} {'count'.rjust(val_width)}"
+    underline = "  " + "-"*key_width + " " + "-"*val_width
+    rows.append(header)
+    rows.append(underline)
+    for key, val in counter.most_common(top_n):
+        rows.append(f"  {_truncate(str(key), key_width).ljust(key_width)} {str(val).rjust(val_width)}")
+    return "\n".join(rows) + "\n"
+
+class Stats:
+    def __init__(self):
+        self.pkts = 0
+        self.bytes = 0
+        self.by_proto = Counter()
+        self.src = Counter()
+        self.dst = Counter()
+        self.sport = Counter()
+        self.dport = Counter()
+        self.tcp_flags = Counter()
+
+    def update(self, *, length: int, proto: str, src: str, dst: str,
+               sport: int | None, dport: int | None, flags: str | None):
+        self.pkts += 1
+        self.bytes += int(length)
+        self.by_proto[proto] += 1
+        self.src[src] += 1
+        self.dst[dst] += 1
+        if sport is not None: self.sport[sport] += 1
+        if dport is not None: self.dport[dport] += 1
+        if flags:
+            for f in flags.split(","):
+                self.tcp_flags[f] += 1
+
+    def snapshot(self, top_n=10) -> str:
+        lines = []
+        lines.append("=== Stats Snapshot ===")
+        lines.append(f"Total: pkts={self.pkts:,}  bytes={self.bytes:,} ({human_bytes(self.bytes)})\n")
+
+        lines.append(counter_table(self.by_proto, "By protocol", "proto", top_n, key_width=10, val_width=10))
+        lines.append(counter_table(self.src,      "Top sources", "source", top_n))
+        lines.append(counter_table(self.dst,      "Top destinations", "destination", top_n))
+        lines.append(counter_table(self.sport,    "Top source ports", "sport", top_n, key_width=10))
+        lines.append(counter_table(self.dport,    "Top destination ports", "dport", top_n, key_width=10))
+
+        if self.tcp_flags:
+            lines.append(counter_table(self.tcp_flags, "TCP flags", "flag", top_n, key_width=10))
+
+        lines.append("======================")
+        return "\n".join(lines)
+
+def parse_args():
+    p = argparse.ArgumentParser(description="DAT Packet Sniffer")
+    p.add_argument("--stats", action="store_true",
+                   help="Aggregate and print stats instead of per-packet lines.")
+    p.add_argument("--interval", type=int, default=10,
+                   help="Stats snapshot interval in seconds (0 = only final on exit).")
+    p.add_argument("--top", type=int, default=10,
+                   help="How many top items to show in each list.")
+    p.add_argument("--no-rdns", action="store_true",
+                   help="Disable reverse DNS lookups.")
+    return p.parse_args()
+
 def main():
     s = open_raw_ipv4_socket()
     print("[*] Sniffer running. Ctrl+C to stop.")
+    stats = Stats()
+    last = time.monotonic()
     try:
         while True:
             pkt = s.recvfrom(65535)[0]
@@ -93,38 +176,48 @@ def main():
 
             hdr = parse_ipv4_header(pkt)
             if not hdr:
-                print(f"[{ts}] len={len(pkt)} bytes  dump={hexdump(pkt)}")
+                if not ARGS.stats:
+                    print(f"[{ts}] len={len(pkt)} bytes  dump={hexdump(pkt)}")
                 continue
 
-            ihl_bytes, total_len, proto, src_ip, dst_ip = hdr
-            # 1) filter (skip LAN to LAN and multicast)
+            ihl_bytes, total_len, proto_num, src_ip, dst_ip = hdr
             if (is_private(src_ip) and is_private(dst_ip)) or is_multicast(src_ip) or is_multicast(dst_ip):
                 continue
 
-            # 2) parse ports
             payload = pkt[ihl_bytes:]
-            sport, dport = parse_ports(proto, payload)
-            pname = PROTO_NAME.get(proto, str(proto))
+            sport, dport = parse_ports(proto_num, payload)
+            pname = PROTO_NAME.get(proto_num, str(proto_num))
 
-            # 3) optional rDNS (after filter)
+            who_src, who_dst = src_ip, dst_ip
             if USE_RDNS:
-                show_src = rdns(src_ip)
-                show_dst = rdns(dst_ip)
+                show_src = rdns(src_ip); show_dst = rdns(dst_ip)
                 who_src = show_src if show_src != src_ip else src_ip
                 who_dst = show_dst if show_dst != dst_ip else dst_ip
-            else:
-                who_src, who_dst = src_ip, dst_ip
 
-            # 4) print
-            if sport is not None:
-                if proto == 6:  # TCP
-                    flags = tcp_flags_str(payload)
-                    extra = f" flags={flags}" if flags else ""
-                    print(f"[{ts}] {who_src}:{sport} -> {who_dst}:{dport}  proto=TCP len={total_len}{extra}")
-                else:
-                    print(f"[{ts}] {who_src}:{sport} -> {who_dst}:{dport}  proto={pname} len={total_len}")
+            # TCP flags (if TCP)
+            flags = None
+            if proto_num == 6:
+                flags = tcp_flags_str(payload)
+
+            if ARGS.stats:
+                stats.update(length=total_len, proto=pname, src=who_src, dst=who_dst,
+                             sport=sport, dport=dport, flags=flags)
+                # periodic snapshot
+                if ARGS.interval and (time.monotonic() - last) >= ARGS.interval:
+                    print("\n=== Stats Snapshot ===")
+                    print(f"\n[{datetime.datetime.now().strftime('%H:%M:%S')}]")
+                    print(stats.snapshot(top_n=ARGS.top))
+                    print("======================\n")
+                    last = time.monotonic()
             else:
-                print(f"[{ts}] {who_src} -> {who_dst}  proto={pname} len={total_len}")
+                # live per-packet print
+                if sport is not None:
+                    if proto_num == 6 and flags:
+                        print(f"[{ts}] {who_src}:{sport} -> {who_dst}:{dport}  proto=TCP len={total_len} flags={flags}")
+                    else:
+                        print(f"[{ts}] {who_src}:{sport} -> {who_dst}:{dport}  proto={pname} len={total_len}")
+                else:
+                    print(f"[{ts}] {who_src} -> {who_dst}  proto={pname} len={total_len}")
 
     except KeyboardInterrupt:
         print("\n[!] Stopping...")
@@ -134,6 +227,13 @@ def main():
         except Exception:
             pass
         s.close()
+        # final stats print
+        if ARGS.stats:
+            print("\n=== Final Stats ===")
+            print(stats.snapshot(top_n=ARGS.top))
+            print("===================\n")
 
 if __name__ == "__main__":
+    ARGS = parse_args()
+    USE_RDNS = not ARGS.no_rdns
     main()
