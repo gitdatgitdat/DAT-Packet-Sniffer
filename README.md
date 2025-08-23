@@ -86,8 +86,7 @@ Top destinations:
 
 TCP flags:  
   ACK             19  
-  SYN              1  
-======================  
+  SYN              1   
 
 ---
 
