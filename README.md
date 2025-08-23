@@ -54,8 +54,8 @@ Per-packet mode (default)
 
 Shows live packet flow with IPs, ports, and flags:
 
-[16:59:17.293] 10.2.0.2:32414 -> 142.251.214.142:443  proto=TCP len=144 flags=ACK
-[16:59:18.540] MyPC -> 151.101.41.91:443           proto=TCP len=40 flags=FIN,ACK
+[16:59:17.293] 10.2.0.2:32414 -> 142.251.214.142:443  proto=TCP len=144 flags=ACK  
+[16:59:18.540] MyPC -> 151.101.41.91:443           proto=TCP len=40 flags=FIN,ACK  
 
 ---
 
@@ -68,26 +68,27 @@ python main.py --stats --interval 10
 Example:
 
 === Stats Snapshot ===
+
 Total: pkts=151  bytes=25,687 (25.08 KB)
 
-By protocol:
-  proto       count
-  ----------  ------
-  UDP         132
-  TCP          19
+By protocol:  
+  proto       count  
+  ----------  ------  
+  UDP         132  
+  TCP          19  
 
-Top sources:
-  Alfred           90
-  162-254-193-98   70
+Top sources:  
+  Alfred           90  
+  162-254-193-98   70  
 
-Top destinations:
-  104.29.158.102   61
-  104.29.158.105   53
+Top destinations:  
+  104.29.158.102   61  
+  104.29.158.105   53  
 
-TCP flags:
-  ACK             19
-  SYN              1
-======================
+TCP flags:  
+  ACK             19  
+  SYN              1  
+======================  
 
 ---
 
