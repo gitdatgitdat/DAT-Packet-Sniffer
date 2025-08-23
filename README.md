@@ -1,6 +1,6 @@
 ## DAT Packet Sniffer
 
-A lightweight Python packet sniffer for Windows that captures IPv4 packets, parses headers, and provides live traffic summaries or aggregate statistics.
+Python packet sniffer for Windows that captures IPv4 packets, parses headers, and provides live traffic summaries or aggregate statistics.
 
 This project was built as a learning tool to explore raw sockets, packet parsing, and basic network analysis without relying on heavy external libraries.
 
