@@ -72,9 +72,9 @@ Example:
 Total: pkts=151  bytes=25,687 (25.08 KB)
 
 By protocol:  
-  proto       count   
-  UDP         132  
-  TCP          19  
+  proto   |    count   
+  UDP     |    132  
+  TCP     |    19  
 
 Top sources:  
   Alfred           90  
