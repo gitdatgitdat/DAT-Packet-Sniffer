@@ -162,11 +162,44 @@ def parse_args():
                    help="How many top items to show in each list.")
     p.add_argument("--no-rdns", action="store_true",
                    help="Disable reverse DNS lookups.")
+    p.add_argument("--logfile", type=str,
+                   help="Append output to this file (UTF-8).")
+    p.add_argument("--no-console", action="store_true",
+                   help="Do not print to console (logfile only).")
     return p.parse_args()
+
+class Tee:
+    def __init__(self, path: str | None, to_console: bool = True):
+        self.to_console = to_console
+        self.fh = None
+        if path:
+            try:
+                # ensure parent dir exists
+                from pathlib import Path
+                Path(path).expanduser().resolve().parent.mkdir(parents=True, exist_ok=True)
+                self.fh = open(path, "a", encoding="utf-8")
+            except Exception as e:
+                print(f"[WARN] Could not open logfile '{path}': {e}")
+                self.fh = None
+
+    def write(self, line: str):
+        if self.to_console:
+            print(line)
+        if self.fh:
+            self.fh.write(line + "\n")
+            self.fh.flush()
+
+    def close(self):
+        if self.fh:
+            self.fh.close()
 
 def main():
     s = open_raw_ipv4_socket()
-    print("[*] Sniffer running. Ctrl+C to stop.")
+    out = Tee(ARGS.logfile, to_console=not ARGS.no_console)
+    out.write("[*] Sniffer running. Ctrl+C to stop.")
+    if ARGS.logfile:
+        out.write(f"[*] Logging to: {ARGS.logfile}  (console={'off' if ARGS.no_console else 'on'})")
+    out.write(f"[*] rDNS: {'on' if (not ARGS.no_rdns) else 'off'}")
     stats = Stats()
     last = time.monotonic()
     try:
@@ -177,7 +210,7 @@ def main():
             hdr = parse_ipv4_header(pkt)
             if not hdr:
                 if not ARGS.stats:
-                    print(f"[{ts}] len={len(pkt)} bytes  dump={hexdump(pkt)}")
+                    out.write(f"[{ts}] len={len(pkt)} bytes  dump={hexdump(pkt)}")
                 continue
 
             ihl_bytes, total_len, proto_num, src_ip, dst_ip = hdr
@@ -190,11 +223,11 @@ def main():
 
             who_src, who_dst = src_ip, dst_ip
             if USE_RDNS:
-                show_src = rdns(src_ip); show_dst = rdns(dst_ip)
+                show_src = rdns(src_ip)
+                show_dst = rdns(dst_ip)
                 who_src = show_src if show_src != src_ip else src_ip
                 who_dst = show_dst if show_dst != dst_ip else dst_ip
 
-            # TCP flags (if TCP)
             flags = None
             if proto_num == 6:
                 flags = tcp_flags_str(payload)
@@ -202,36 +235,36 @@ def main():
             if ARGS.stats:
                 stats.update(length=total_len, proto=pname, src=who_src, dst=who_dst,
                              sport=sport, dport=dport, flags=flags)
-                # periodic snapshot
                 if ARGS.interval and (time.monotonic() - last) >= ARGS.interval:
-                    print("\n=== Stats Snapshot ===")
-                    print(f"\n[{datetime.datetime.now().strftime('%H:%M:%S')}]")
-                    print(stats.snapshot(top_n=ARGS.top))
-                    print("======================\n")
+                    out.write("")  # blank line
+                    out.write("=== Stats Snapshot ===")
+                    out.write(stats.snapshot(top_n=ARGS.top))
+                    out.write("======================")
+                    out.write("")
                     last = time.monotonic()
             else:
-                # live per-packet print
                 if sport is not None:
                     if proto_num == 6 and flags:
-                        print(f"[{ts}] {who_src}:{sport} -> {who_dst}:{dport}  proto=TCP len={total_len} flags={flags}")
+                        out.write(
+                            f"[{ts}] {who_src}:{sport} -> {who_dst}:{dport}  proto=TCP len={total_len} flags={flags}")
                     else:
-                        print(f"[{ts}] {who_src}:{sport} -> {who_dst}:{dport}  proto={pname} len={total_len}")
+                        out.write(f"[{ts}] {who_src}:{sport} -> {who_dst}:{dport}  proto={pname} len={total_len}")
                 else:
-                    print(f"[{ts}] {who_src} -> {who_dst}  proto={pname} len={total_len}")
+                    out.write(f"[{ts}] {who_src} -> {who_dst}  proto={pname} len={total_len}")
 
     except KeyboardInterrupt:
-        print("\n[!] Stopping...")
+        out.write("\n[!] Stopping...")
     finally:
         try:
             s.ioctl(socket.SIO_RCVALL, socket.RCVALL_OFF)
         except Exception:
             pass
         s.close()
-        # final stats print
         if ARGS.stats:
-            print("\n=== Final Stats ===")
-            print(stats.snapshot(top_n=ARGS.top))
-            print("===================\n")
+            out.write("\n=== Final Stats ===")
+            out.write(stats.snapshot(top_n=ARGS.top))
+            out.write("===================\n")
+        out.close()
 
 if __name__ == "__main__":
     ARGS = parse_args()

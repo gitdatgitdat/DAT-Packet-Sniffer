@@ -1,0 +1,227 @@
+[*] Sniffer running. Ctrl+C to stop.
+[*] Logging to: stats.log  (console=off)
+[*] rDNS: on
+
+=== Stats Snapshot ===
+=== Stats Snapshot ===
+Total: pkts=46  bytes=12,338 (12.05 KB)
+
+By protocol:
+  proto           count
+  ---------- ----------
+  TCP                26
+  UDP                20
+
+Top sources:
+  source                                  count
+  ------------------------------------ --------
+  Alfred                                     39
+  172.64.146.215                              5
+  ec2-54-193-147-96.us-west-1.compute…        1
+  178.162.173.21                              1
+
+Top destinations:
+  destination                             count
+  ------------------------------------ --------
+  pnseaa-ap-in-f14.1e100.net                 13
+  Alfred                                      7
+  172.64.146.215                              7
+  172.167.2.3                                 4
+  104.18.39.21                                3
+  159.121.117.34.bc.googleusercontent…        2
+  ec2-54-193-147-96.us-west-1.compute…        2
+  pnseaa-an-in-f5.1e100.net                   2
+  185.159.159.1                               2
+  pubsub04.pop.fmt.plex.bz                    1
+
+Top source ports:
+  sport         count
+  ---------- --------
+  53014            13
+  58621             6
+  443               5
+  137               4
+  52949             2
+  58738             2
+  53008             2
+  52944             2
+  62232             1
+  62219             1
+
+Top destination ports:
+  dport         count
+  ---------- --------
+  443              30
+  58621             5
+  137               4
+  1194              2
+  80                2
+  58738             1
+  28014             1
+  15880             1
+
+TCP flags:
+  flag          count
+  ---------- --------
+  ACK              25
+  PSH              11
+  SYN               1
+
+======================
+======================
+
+
+=== Stats Snapshot ===
+=== Stats Snapshot ===
+Total: pkts=5,488  bytes=6,250,910 (5.96 MB)
+
+By protocol:
+  proto           count
+  ---------- ----------
+  UDP              5432
+  TCP                56
+
+Top sources:
+  source                                  count
+  ------------------------------------ --------
+  sea09s33-in-f6.1e100.net                 4849
+  Alfred                                    619
+  172.64.146.215                             13
+  ec2-54-193-147-96.us-west-1.compute…        5
+  178.162.173.21                              1
+  213.227.153.16                              1
+
+Top destinations:
+  destination                             count
+  ------------------------------------ --------
+  Alfred                                   4869
+  sea09s33-in-f6.1e100.net                  528
+  172.64.146.215                             22
+  pnseaa-ap-in-f14.1e100.net                 15
+  104.18.39.21                                9
+  ec2-54-193-147-96.us-west-1.compute…        6
+  211.196.209.35.bc.googleusercontent…        6
+  159.121.117.34.bc.googleusercontent…        4
+  172.167.2.3                                 4
+  172.67.201.151                              3
+
+Top source ports:
+  sport         count
+  ---------- --------
+  443            4862
+  54091           527
+  58621            19
+  53014            15
+  137               8
+  58738             6
+  52377             6
+  1194              5
+  52949             4
+  52657             4
+
+Top destination ports:
+  dport         count
+  ---------- --------
+  54091          4849
+  443             600
+  58621            13
+  137               8
+  1194              6
+  58738             5
+  15880             2
+  80                2
+  28014             1
+  28006             1
+
+TCP flags:
+  flag          count
+  ---------- --------
+  ACK              55
+  PSH              18
+  FIN               2
+  SYN               1
+
+======================
+======================
+
+
+[!] Stopping...
+
+=== Final Stats ===
+=== Stats Snapshot ===
+Total: pkts=5,642  bytes=6,293,167 (6.00 MB)
+
+By protocol:
+  proto           count
+  ---------- ----------
+  UDP              5519
+  TCP               123
+
+Top sources:
+  source                                  count
+  ------------------------------------ --------
+  sea09s33-in-f6.1e100.net                 4849
+  Alfred                                    738
+  172.64.146.215                             40
+  ec2-54-193-147-96.us-west-1.compute…        8
+  178.162.173.21                              1
+  213.227.153.16                              1
+  46.232.211.70                               1
+  c-24-91-98-197.hsd1.ma.comcast.net          1
+  93-103-93-75.dynamic.t-2.net                1
+  63-133-225-245.planet.net                   1
+
+Top destinations:
+  destination                             count
+  ------------------------------------ --------
+  Alfred                                   4904
+  sea09s33-in-f6.1e100.net                  528
+  172.64.146.215                             55
+  pnseaa-ap-in-f14.1e100.net                 15
+  a23-46-228-41.deploy.static.akamait…       13
+  104.18.39.21                               12
+  211.196.209.35.bc.googleusercontent…       12
+  lb-140-82-116-5-sea.github.com             12
+  246.73.36.34.bc.googleusercontent.c…       10
+  ec2-54-193-147-96.us-west-1.compute…        9
+
+Top source ports:
+  sport         count
+  ---------- --------
+  443            4889
+  54091           527
+  58621            52
+  137              19
+  53014            15
+  53023            13
+  52377            12
+  53021            12
+  53022            10
+  58738             9
+
+Top destination ports:
+  dport         count
+  ---------- --------
+  54091          4849
+  443             694
+  58621            40
+  137              19
+  1194              9
+  58738             8
+  80                8
+  15880             6
+  28014             1
+  28006             1
+
+TCP flags:
+  flag          count
+  ---------- --------
+  ACK             118
+  PSH              41
+  SYN               5
+  FIN               4
+  RST               1
+
+======================
+===================
+

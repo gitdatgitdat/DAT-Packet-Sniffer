@@ -1,0 +1,46 @@
+[*] Sniffer running. Ctrl+C to stop.
+[*] Logging to: run.log  (console=on)
+[*] rDNS: on
+[13:31:00.506] Alfred:58621 -> 172.64.146.215:443  proto=UDP len=1280
+[13:31:05.450] Alfred:58621 -> 172.64.146.215:443  proto=UDP len=1280
+[13:31:05.451] Alfred:58621 -> 172.64.146.215:443  proto=UDP len=413
+[13:31:05.452] 172.64.146.215:443 -> Alfred:58621  proto=UDP len=57
+[13:31:05.452] 172.64.146.215:443 -> Alfred:58621  proto=UDP len=57
+[13:31:05.452] 172.64.146.215:443 -> Alfred:58621  proto=UDP len=435
+[13:31:05.453] Alfred:58621 -> 172.64.146.215:443  proto=UDP len=75
+[13:31:05.453] 172.64.146.215:443 -> Alfred:58621  proto=UDP len=53
+[13:31:05.453] Alfred:58621 -> 172.64.146.215:443  proto=UDP len=76
+[13:31:05.453] Alfred:15880 -> free-111-70.mediaworksit.net:14921  proto=UDP len=132
+[13:31:05.525] Alfred:51813 -> 172.64.150.52:443  proto=TCP len=40 flags=ACK
+[13:31:10.464] free-111-70.mediaworksit.net:14921 -> Alfred:15880  proto=UDP len=337
+[13:31:10.465] Alfred:137 -> 172.64.146.215:137  proto=UDP len=78
+[13:31:10.465] Alfred:52949 -> 159.121.117.34.bc.googleusercontent.com:443  proto=TCP len=40 flags=ACK
+[13:31:10.622] Alfred:58738 -> ec2-54-193-147-96.us-west-1.compute.amazonaws.com:1194  proto=UDP len=144
+[13:31:10.705] ec2-54-193-147-96.us-west-1.compute.amazonaws.com:1194 -> Alfred:58738  proto=UDP len=144
+[13:31:10.706] 172.64.146.215:443 -> Alfred:58621  proto=UDP len=68
+[13:31:10.706] Alfred:58621 -> 172.64.146.215:443  proto=UDP len=75
+[13:31:10.706] Alfred:137 -> 172.64.146.215:137  proto=UDP len=78
+[13:31:10.706] Alfred:62219 -> pubsub04.pop.fmt.plex.bz:443  proto=TCP len=40 flags=ACK
+[13:31:10.806] 172.64.146.215:443 -> Alfred:58621  proto=UDP len=635
+[13:31:10.806] Alfred:58621 -> 172.64.146.215:443  proto=UDP len=75
+[13:31:10.807] Alfred:52918 -> 93.243.107.34.bc.googleusercontent.com:443  proto=TCP len=68 flags=PSH,ACK
+[13:31:10.892] Alfred:137 -> 172.64.146.215:137  proto=UDP len=78
+[13:31:10.893] Alfred:52657 -> 104.18.39.21:443  proto=TCP len=68 flags=PSH,ACK
+[13:31:15.829] Alfred:15880 -> hosted-by.leaseweb.com:47760  proto=UDP len=93
+[13:31:16.003] hosted-by.leaseweb.com:47760 -> Alfred:15880  proto=UDP len=75
+[13:31:16.004] Alfred:52658 -> 104.18.39.21:443  proto=TCP len=68 flags=PSH,ACK
+[13:31:16.004] Alfred:137 -> 172.64.150.52:137  proto=UDP len=78
+[13:31:16.005] Alfred:62086 -> pnseaa-am-in-f10.1e100.net:443  proto=TCP len=40 flags=ACK
+[13:31:16.019] Alfred:52949 -> 159.121.117.34.bc.googleusercontent.com:443  proto=TCP len=40 flags=ACK
+[13:31:16.020] ec2-54-193-147-96.us-west-1.compute.amazonaws.com:1194 -> Alfred:58738  proto=UDP len=144
+[13:31:16.020] Alfred:58738 -> ec2-54-193-147-96.us-west-1.compute.amazonaws.com:1194  proto=UDP len=144
+[13:31:16.020] Alfred:52965 -> 52.123.129.14:443  proto=TCP len=52 flags=SYN
+[13:31:20.973] Alfred:52965 -> 52.123.129.14:443  proto=TCP len=40 flags=ACK
+[13:31:20.974] Alfred:52965 -> 52.123.129.14:443  proto=TCP len=527 flags=PSH,ACK
+[13:31:20.974] Alfred:137 -> 172.64.150.52:137  proto=UDP len=78
+[13:31:20.974] Alfred:52965 -> 52.123.129.14:443  proto=TCP len=40 flags=ACK
+[13:31:20.974] Alfred:52965 -> 52.123.129.14:443  proto=TCP len=91 flags=PSH,ACK
+[13:31:20.975] Alfred:52965 -> 52.123.129.14:443  proto=TCP len=660 flags=PSH,ACK
+[13:31:20.975] Alfred:52965 -> 52.123.129.14:443  proto=TCP len=40 flags=ACK
+
+[!] Stopping...
