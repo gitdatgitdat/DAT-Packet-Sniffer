@@ -8,29 +8,23 @@ This project was built as a learning tool to explore raw sockets, packet parsing
 
 ## Features
 
-Captures raw IPv4 packets using Python sockets
-
-Displays per-packet details:
-
-Source and destination IPs (with optional reverse DNS lookups)
-
-Protocol (TCP, UDP, ICMP, etc.)
-
-Ports (for TCP/UDP)
-
-TCP flags (SYN, ACK, FIN, etc.)
-
-Filters out RFC1918 (private) and multicast chatter
-
-Stats mode:
-
-Aggregates traffic by protocol, source, destination, and ports
-
-Tracks TCP flag usage
-
-Outputs periodic or final snapshots
-
-Works entirely in Python’s standard library (no external deps)
+- Captures raw IPv4 packets using Python sockets  
+- Displays per-packet details:  
+  - Source and destination IPs (with optional reverse DNS lookups)  
+  - Protocol (TCP, UDP, ICMP, etc.)  
+  - Ports (for TCP/UDP)  
+  - TCP flags (SYN, ACK, FIN, etc.)  
+- Filters out **RFC1918 (private)** and **multicast** chatter  
+- **Stats mode**:  
+  - Aggregates traffic by protocol, source, destination, and ports  
+  - Tracks TCP flag usage  
+  - Outputs periodic or final snapshots  
+  - Human-readable byte totals (e.g., `4.25 MB`)  
+- **Logging**:  
+  - Write to console, logfile, or both  
+  - `--no-console` disables console output  
+  - Logfile directories are created automatically  
+- Works entirely in Python’s standard library (no external deps)  
 
 ---
 
@@ -77,7 +71,7 @@ By protocol:
   TCP     |    19  
 
 Top sources:  
-  Alfred           90  
+  MyPC           90  
   162-254-193-98   70  
 
 Top destinations:  
@@ -99,6 +93,10 @@ Useful flags
 --top N : Show top N items in each table (default 10)
 
 --no-rdns : Disable reverse DNS lookups
+
+--logfile FILE : Append output to logfile (UTF-8)
+
+--no-console : Suppress console output (logfile only)
 
 ---
 
